@@ -10,6 +10,8 @@ export default class ManageUsers extends Component {
     editing: false,
     userInfo: false,
     loading: true,
+    myTransactions: undefined,
+    customerId: undefined,
   };
   async componentDidMount() {
     await _database.ref("customers").on("value", (x) => {
@@ -25,9 +27,11 @@ export default class ManageUsers extends Component {
     return (
       <div className="manage-body">
         <h3 className="title unselectable">Customer Accounts</h3>
-        <div className="search-bar"></div>
+        <div className="search-bar" />
         {this.state.loading === true ? (
           <Loader />
+        ) : this.state.myTransactions ? (
+          <MyTransactions customerId={this.state.customerId} />
         ) : (
           <div className="accounts-list">
             {this.state.accounts.map((x, i) => {
@@ -46,6 +50,9 @@ export default class ManageUsers extends Component {
                   </p>
                   <p className="date unselectable">
                     Registered on: {x.createdOn}
+                  </p>
+                  <p className="date unselectable">
+                    Account Balance: {parseInt(x.customerBalance) + 0}
                   </p>
                   <div className="card-options">
                     <p
@@ -106,7 +113,19 @@ export default class ManageUsers extends Component {
                     >
                       Edit Account
                     </p>
-                    <p className="unselectable">View Transactions</p>
+                    <p
+                      className="unselectable"
+                      onClick={async () => {
+                        await setTimeout(() => {
+                          this.setState({
+                            myTransactions: true,
+                            customerId: x.customerId,
+                          });
+                        }, 100);
+                      }}
+                    >
+                      View Transactions
+                    </p>
                   </div>
                 </div>
               );
@@ -126,11 +145,13 @@ export default class ManageUsers extends Component {
             className="create-customer-btn unselectable"
             onClick={async () => {
               await setTimeout(() => {
-                this.setState({ editing: { customerId: undefined } });
+                if (this.state.myTransactions) {
+                  this.setState({ myTransactions: undefined });
+                } else this.setState({ editing: { customerId: undefined } });
               }, 100);
             }}
           >
-            New Customer
+            {this.state.myTransactions ? "Close" : "New Customer"}
           </p>
         )}
         {this.state.transact ? (
@@ -527,7 +548,6 @@ class Transact extends Component {
                 await _database
                   .ref("transactions/" + p.customerId + "/" + date)
                   .push(p)
-
                   .then(async (c) => {
                     await _database
                       .ref("customers/" + p.customerId + "/customerBalance")
@@ -578,6 +598,51 @@ class Transact extends Component {
           </p>
           <div style={{ marginTop: "10px" }} />
         </div>
+      </div>
+    );
+  }
+}
+
+class MyTransactions extends Component {
+  state = { transactions: [], loading: true };
+  async componentDidMount() {
+    await _database
+      .ref("transactions/" + this.props.customerId)
+      .on("value", (x) => {
+        const dat = [];
+        x.forEach((d) => {
+          const _dat = [];
+          d.forEach((x) => {
+            _dat.push(x.val());
+          });
+          const _ = {
+            d: d.key,
+            data: _dat,
+          };
+          dat.push(_);
+        });
+        this.setState({ transactions: dat, loading: false });
+      });
+  }
+  render() {
+    return this.state.loading === true ? (
+      <Loader />
+    ) : (
+      <div className="my-transactions">
+        {this.state.transactions.map((x, i) => {
+          return (
+            <div className="date-card">
+              <p className="date unselectable">{x.d}</p>
+              {x.data.map((z, i) => {
+                return (
+                  <p className="msg unselectable">
+                    {z.transactionType} of amount {z.transactionAmount}
+                  </p>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     );
   }
