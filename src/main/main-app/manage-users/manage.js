@@ -7,7 +7,7 @@ export default class ManageUsers extends Component {
   state = {
     accounts: [],
     searchKey: "",
-    editing: false,
+    editing: undefined,
     userInfo: false,
     loading: true,
     myTransactions: undefined,
@@ -26,117 +26,141 @@ export default class ManageUsers extends Component {
   render() {
     return (
       <div className="manage-body">
-        <h3 className="title unselectable">Customer Accounts</h3>
+        <h3 className="title unselectable">Accounts</h3>
         <div className="search-bar" />
         {this.state.loading === true ? (
           <Loader />
-        ) : this.state.myTransactions ? (
+        ) : this.state.myTransactions &&
+          this.state.editing === undefined &&
+          this.state.transact === undefined ? (
           <MyTransactions customerId={this.state.customerId} />
         ) : (
           <div className="accounts-list">
             {this.state.accounts.map((x, i) => {
               return (
                 <div className="account-card">
-                  <img
-                    alt=""
-                    src={
-                      require("../../../assets/drawables/account.png").default
-                    }
-                    className="unselectable"
-                  />
-                  <p className="name unselectable">{x.customerName}</p>
-                  <p className="status unselectable">
-                    {x.customerStatus === true ? "active" : "Deactivated"}
-                  </p>
-                  <p className="date unselectable">
-                    Registered on: {x.createdOn}
-                  </p>
-                  <p className="date unselectable">
-                    Account Balance: {parseInt(x.customerBalance) + 0}
-                  </p>
-                  <div className="card-options">
-                    <p
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      flex: 1,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <img
+                      alt=""
+                      src={
+                        require("../../../assets/drawables/account.png").default
+                      }
                       className="unselectable"
-                      onClick={async () => {
-                        await setTimeout(() => {
-                          if (x.customerStatus === true) {
-                            this.setState({
-                              transact: {
-                                customerId: x.customerId,
-                                transactionAmount: "",
-                                transactionType: "Withdraw",
-                                date: "",
-                              },
-                            });
-                          } else {
-                            this.props.showTimedToast(
-                              x.customerName + " is deactivated"
-                            );
-                          }
-                        }, 100);
-                      }}
-                    >
-                      Withdraw
+                    />
+                    <p className="name unselectable">{x.customerName}</p>
+                    <p className="status unselectable">
+                      {x.customerStatus === true ? "active" : "Deactivated"}
                     </p>
-                    <p
-                      className="unselectable"
-                      onClick={async () => {
-                        await setTimeout(() => {
-                          if (x.customerStatus === true) {
-                            this.setState({
-                              transact: {
-                                customerId: x.customerId,
-                                transactionAmount: "",
-                                transactionType: "Deposit",
-                                date: "",
-                              },
-                            });
-                          } else {
-                            this.props.showTimedToast(
-                              x.customerName + " is deactivated"
-                            );
-                          }
-                        }, 100);
-                      }}
-                    >
-                      Deposit
+                    <p className="date unselectable">
+                      Registered on: {x.createdOn}
+                    </p>
+                    <p className="date unselectable">
+                      Account Balance: {parseInt(x.customerBalance) + 0}
                     </p>
                   </div>
-                  <div className="card-options">
-                    <p
-                      className="unselectable"
-                      onClick={async () => {
-                        await setTimeout(() => {
-                          this.setState({ editing: x });
-                        }, 100);
-                      }}
-                    >
-                      Edit Account
-                    </p>
-                    <p
-                      className="unselectable"
-                      onClick={async () => {
-                        await setTimeout(() => {
-                          this.setState({
-                            myTransactions: true,
-                            customerId: x.customerId,
-                          });
-                        }, 100);
-                      }}
-                    >
-                      View Transactions
-                    </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      flex: 1,
+                      justifyContent: "center",
+                    }}
+                  >
+                    <div className="card-options">
+                      <p
+                        className="unselectable"
+                        onClick={async () => {
+                          await setTimeout(() => {
+                            if (x.customerStatus === true) {
+                              this.setState({
+                                transact: {
+                                  customerId: x.customerId,
+                                  transactionAmount: "",
+                                  transactionType: "Withdraw",
+                                  date: "",
+                                },
+                                editing: undefined,
+                              });
+                            } else {
+                              this.props.showTimedToast(
+                                x.customerName + " is deactivated"
+                              );
+                            }
+                          }, 100);
+                        }}
+                      >
+                        Withdraw
+                      </p>
+                      <p
+                        className="unselectable"
+                        onClick={async () => {
+                          await setTimeout(() => {
+                            if (x.customerStatus === true) {
+                              this.setState({
+                                transact: {
+                                  customerId: x.customerId,
+                                  transactionAmount: "",
+                                  transactionType: "Deposit",
+                                  date: "",
+                                },
+                                editing: undefined,
+                              });
+                            } else {
+                              this.props.showTimedToast(
+                                x.customerName + " is deactivated"
+                              );
+                            }
+                          }, 100);
+                        }}
+                      >
+                        Deposit
+                      </p>
+                    </div>
+                    <div className="card-options">
+                      <p
+                        className="unselectable"
+                        onClick={async () => {
+                          await setTimeout(() => {
+                            this.setState({ editing: x, transact: undefined });
+                          }, 100);
+                        }}
+                      >
+                        Edit Account
+                      </p>
+                      <p
+                        className="unselectable"
+                        onClick={async () => {
+                          await setTimeout(() => {
+                            this.setState({
+                              myTransactions: true,
+                              customerId: x.customerId,
+                              editing: undefined,
+                              transact: undefined,
+                            });
+                          }, 100);
+                        }}
+                      >
+                        View Transactions
+                      </p>
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
         )}
-        {this.state.editing ? (
+        {this.state.editing && this.state.transact === undefined ? (
           <EditCustomer
             editing={this.state.editing}
             close={() => {
-              this.setState({ editing: undefined });
+              this.setState({ editing: undefined,transact:undefined });
             }}
             showTimedToast={this.props.showTimedToast}
           />
@@ -154,7 +178,7 @@ export default class ManageUsers extends Component {
             {this.state.myTransactions ? "Close" : "New Customer"}
           </p>
         )}
-        {this.state.transact ? (
+        {this.state.transact && this.state.editing === undefined ? (
           <Transact
             transact={this.state.transact}
             close={() => {
@@ -190,6 +214,7 @@ class EditCustomer extends Component {
         customerName: "",
         customerStatus: "",
         createdOn: "",
+        customerBalance: "",
       };
       const k = await _database.ref("pipelines").push();
       x.customerId = k.key;
@@ -209,6 +234,7 @@ class EditCustomer extends Component {
           createdOn,
           phoneNumber,
           address,
+          customerBalance,
         } = data.val();
         const p = {
           customerId: customerId,
@@ -217,6 +243,7 @@ class EditCustomer extends Component {
           phoneNumber: phoneNumber,
           address: address,
           createdOn: createdOn,
+          customerBalance: customerBalance,
         };
         this.setState({ customer: p });
       } else {
@@ -404,14 +431,16 @@ class EditCustomer extends Component {
             <p
               className="btn unselectable"
               onClick={async () => {
-                const {
+                var {
                   customerId,
                   customerName,
                   customerStatus,
                   createdOn,
                   phoneNumber,
                   address,
+                  customerBalance,
                 } = this.state.customer;
+                if (customerBalance === undefined) customerBalance = 0;
                 const p = {
                   customerId: customerId,
                   customerName: customerName,
@@ -419,6 +448,7 @@ class EditCustomer extends Component {
                   phoneNumber: phoneNumber,
                   address: address,
                   createdOn: createdOn,
+                  customerBalance: customerBalance,
                 };
 
                 await _database
